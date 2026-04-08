@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Serial Number Confirmation</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #f5f4f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+      color: #1a1a1a;
+    }
+
+    .wrap { width: 100%; max-width: 520px; }
+
+    .header { text-align: center; margin-bottom: 2rem; }
+
+    .tag {
+      display: inline-block;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.68rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #6b6b6b;
+      border: 1px solid #d8d5ce;
+      padding: 0.28rem 0.7rem;
+      border-radius: 20px;
+      margin-bottom: 1rem;
+    }
+
+    h1 {
+      font-size: clamp(1.5rem, 5vw, 2rem);
+      font-weight: 600;
+      letter-spacing: -0.03em;
+      color: #111;
+      line-height: 1.15;
+      margin-bottom: 0.5rem;
+    }
+
+    .sub { font-size: 0.9rem; color: #888; font-weight: 300; }
+
+    .card {
+      background: #fff;
+      border: 1px solid #e4e1da;
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .field { margin-bottom: 1.2rem; }
+
+    label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: #999;
+      margin-bottom: 0.45rem;
+    }
+
+    input {
+      width: 100%;
+      background: #faf9f7;
+      border: 1px solid #e4e1da;
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+      font-size: 0.95rem;
+      font-family: 'DM Sans', sans-serif;
+      color: #111;
+      outline: none;
+      transition: border-color 0.18s, box-shadow 0.18s;
+    }
+    input:focus {
+      border-color: #aaa;
+      box-shadow: 0 0 0 3px rgba(0,0,0,0.06);
+      background: #fff;
+    }
+    input::placeholder { color: #c5c2bb; }
+
+    .sep {
+      text-align: center;
+      position: relative;
+      font-size: 0.72rem;
+      font-family: 'DM Mono', monospace;
+      color: #bbb;
+      margin: 1.2rem 0;
+    }
+    .sep::before, .sep::after {
+      content: '';
+      position: absolute;
+      top: 50%; width: 44%; height: 1px;
+      background: #ebe8e2;
+    }
+    .sep::before { left: 0; }
+    .sep::after  { right: 0; }
+
+    button {
+      width: 100%;
+      padding: 0.85rem;
+      background: #111;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.18s, transform 0.1s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    button:hover { background: #2a2a2a; }
+    button:active { transform: scale(0.99); }
+    button:disabled { background: #ccc; cursor: not-allowed; }
+
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.55s linear infinite;
+      display: none;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .msg {
+      margin-top: 1rem;
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
+      font-size: 0.875rem;
+      display: none;
+    }
+    .msg.err { background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; }
+    .msg.ok  { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
+
+    .result {
+      margin-top: 1.5rem;
+      display: none;
+      animation: up 0.35s ease;
+    }
+    @keyframes up {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .result-label {
+      font-size: 0.7rem;
+      font-family: 'DM Mono', monospace;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #aaa;
+      margin-bottom: 0.9rem;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .result-label::after { content: ''; flex: 1; height: 1px; background: #ebe8e2; }
+
+    .serial-box {
+      background: #f5f4f0;
+      border: 1px solid #e4e1da;
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+    .serial-key { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.07em; color: #999; font-weight: 500; }
+    .serial-val { font-family: 'DM Mono', monospace; font-size: 1.25rem; font-weight: 500; color: #111; }
+
+    table { width: 100%; border-collapse: collapse; }
+    tr { border-bottom: 1px solid #f0ede7; }
+    tr:last-child { border-bottom: none; }
+    td { padding: 0.7rem 0; font-size: 0.88rem; }
+    td:first-child { width: 38%; font-size: 0.73rem; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: #aaa; }
+    td:last-child { color: #222; }
+
+    .notice {
+      margin-top: 1rem;
+      padding: 0.7rem 1rem;
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-radius: 10px;
+      font-size: 0.8rem;
+      color: #92400e;
+      display: none;
+    }
+
+    .footer { text-align: center; margin-top: 1.5rem; font-size: 0.72rem; font-family: 'DM Mono', monospace; color: #ccc; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <div class="tag">Verification Portal</div>
+    <h1>Serial Number<br/>Confirmation</h1>
+    <p class="sub">Enter your mobile number or email to find your record</p>
+  </div>
+
+  <div class="card">
+    <div class="field">
+      <label>Mobile Number</label>
+      <input type="tel" id="mobileInput" placeholder="e.g. 9876543210"/>
+    </div>
+
+    <div class="sep">or</div>
+
+    <div class="field">
+      <label>Email Address</label>
+      <input type="email" id="emailInput" placeholder="e.g. name@example.com"/>
+    </div>
+
+    <button id="btn" onclick="lookup()">
+      <span id="btnText">Confirm Serial Number</span>
+      <div class="spinner" id="spinner"></div>
+    </button>
+
+    <div class="msg" id="msg"></div>
+    <div class="notice" id="notice"></div>
+
+    <div class="result" id="result">
+      <div class="result-label">Record Found</div>
+      <div class="serial-box">
+        <span class="serial-key">Serial No.</span>
+        <span class="serial-val" id="rSerial">—</span>
+      </div>
+      <table>
+        <tr><td>Name</td><td id="rName">—</td></tr>
+        <tr><td>Mobile</td><td id="rMobile">—</td></tr>
+        <tr><td>Email</td><td id="rEmail">—</td></tr>
+        <tr><td>Building</td><td id="rBuilding">—</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="footer">data sourced from google sheets</div>
+</div>
+
+<script>
+  const SHEET_ID = '1wajXNpB2ZAeBi_WE4c2nuIEBeXcphbOeN5elXv_Aqg8';
+
+  // Three URL strategies tried in order:
+  // 1. Direct export (works when served from a web server or when sheet is fully public)
+  // 2. CORS proxy allorigins.win
+  // 3. CORS proxy corsproxy.io
+  const DIRECT_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Sheet1`;
+  const PROXY1_URL = `https://api.allorigins.win/raw?url=${encodeURIComponent(DIRECT_URL)}`;
+  const PROXY2_URL = `https://corsproxy.io/?${encodeURIComponent(DIRECT_URL)}`;
+
+  function parseCSV(text) {
+    return text.trim().split('\n').map(row => {
+      const cells = [];
+      let cur = '', inQ = false;
+      for (let i = 0; i < row.length; i++) {
+        const ch = row[i];
+        if (ch === '"') { inQ = !inQ; }
+        else if (ch === ',' && !inQ) { cells.push(cur.trim()); cur = ''; }
+        else { cur += ch; }
+      }
+      cells.push(cur.trim());
+      return cells;
+    });
+  }
+
+  function showMsg(text, type) {
+    const el = document.getElementById('msg');
+    el.textContent = text;
+    el.className = 'msg ' + type;
+    el.style.display = 'block';
+  }
+
+  function showNotice(text) {
+    const el = document.getElementById('notice');
+    el.textContent = text;
+    el.style.display = 'block';
+  }
+
+  function setLoading(on) {
+    document.getElementById('btn').disabled = on;
+    document.getElementById('btnText').style.display = on ? 'none' : 'inline';
+    document.getElementById('spinner').style.display = on ? 'block' : 'none';
+  }
+
+  async function fetchWithFallback() {
+    // Try direct first
+    try {
+      const res = await fetch(DIRECT_URL, { mode: 'cors' });
+      if (res.ok) {
+        const text = await res.text();
+        if (text && text.length > 10) return text;
+      }
+    } catch (_) {}
+
+    // Fallback 1: allorigins
+    try {
+      const res = await fetch(PROXY1_URL);
+      if (res.ok) {
+        const text = await res.text();
+        if (text && text.length > 10) {
+          showNotice('ℹ️ Connected via proxy. For best performance, host this file on a web server.');
+          return text;
+        }
+      }
+    } catch (_) {}
+
+    // Fallback 2: corsproxy.io
+    try {
+      const res = await fetch(PROXY2_URL);
+      if (res.ok) {
+        const text = await res.text();
+        if (text && text.length > 10) {
+          showNotice('ℹ️ Connected via proxy. For best performance, host this file on a web server.');
+          return text;
+        }
+      }
+    } catch (_) {}
+
+    throw new Error(
+      'Could not reach Google Sheets. Please ensure the sheet is shared as "Anyone with the link → Viewer" and you have an internet connection.'
+    );
+  }
+
+  async function lookup() {
+    const mobile = document.getElementById('mobileInput').value.trim();
+    const email  = document.getElementById('emailInput').value.trim().toLowerCase();
+
+    document.getElementById('result').style.display  = 'none';
+    document.getElementById('msg').style.display     = 'none';
+    document.getElementById('notice').style.display  = 'none';
+
+    if (!mobile && !email) {
+      showMsg('Please enter a mobile number or email address.', 'err');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const text = await fetchWithFallback();
+      const rows = parseCSV(text);
+
+      let found = null;
+      for (let i = 1; i < rows.length; i++) {
+        const row      = rows[i];
+        const rowMob   = (row[3] || '').replace(/\D/g, '');
+        const rowEmail = (row[2] || '').trim().toLowerCase();
+        const inMob    = mobile.replace(/\D/g, '');
+
+        if ((inMob && rowMob === inMob) || (email && rowEmail === email)) {
+          found = {
+            serial  : row[0]  || '—',
+            name    : row[1]  || '—',
+            email   : row[2]  || '—',
+            mobile  : row[3]  || '—',
+            building: row[11] || '—',
+          };
+          break;
+        }
+      }
+
+      if (!found) {
+        showMsg('No record found. Please check your details and try again.', 'err');
+      } else {
+        document.getElementById('rSerial').textContent   = found.serial;
+        document.getElementById('rName').textContent     = found.name;
+        document.getElementById('rMobile').textContent   = found.mobile;
+        document.getElementById('rEmail').textContent    = found.email;
+        document.getElementById('rBuilding').textContent = found.building;
+        document.getElementById('result').style.display  = 'block';
+        showMsg('Record found successfully.', 'ok');
+      }
+    } catch (e) {
+      showMsg('Error: ' + e.message, 'err');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  document.addEventListener('keydown', e => { if (e.key === 'Enter') lookup(); });
+</script>
+</body>
+</html>
